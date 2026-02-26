@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { checkRateLimit, recordRateLimitEvent } from "@/lib/rateLimit";
 
 const ALLOWED_TYPES = new Set([
@@ -97,8 +97,11 @@ export async function POST(req: Request) {
     const storagePath = `applications/${applicationId}/${type}${safeExt}`;
 
     // 7) Upload to Supabase Storage
+        // 7) Upload to Supabase Storage
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("documents")
