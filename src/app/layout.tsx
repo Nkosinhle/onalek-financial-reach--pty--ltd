@@ -9,16 +9,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
+    <html lang="en">
       <body>
-        <div className="appShell">
-          <SiteHeader />
-          <main className="appMain">{children}</main>
-          <SiteFooter />
-        </div>
+        <ClerkProvider>
+          <div className="appShell">
+            <SiteHeader />
+            <main className="appMain">{children}</main>
+            <SiteFooter />
+          </div>
+        </ClerkProvider>
       </body>
     </html>
-    </ClerkProvider>
   );
 }
