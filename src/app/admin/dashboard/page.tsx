@@ -228,7 +228,11 @@ export default function AdminDashboardPage() {
                   R{a.amountRequested}
                 </Cell>
 
-                <Cell title={`${a.repayDays}m`}>{a.repayDays}m</Cell>
+                <Cell
+                  title={`${a.repayDays} ${a.repayDays === 1 ? "day" : "days"}`}
+                >
+                  {a.repayDays} {a.repayDays === 1 ? "day" : "days"}
+                </Cell>
 
                 <Cell title={a.status} strong>
                   {a.status}

@@ -8,13 +8,22 @@ import { useEffect, useState } from "react";
 
 type Role = "GUEST" | "USER" | "ADMIN";
 
-function NavLink({ href, label }: { href: string; label: string }) {
+function NavLink({
+  href,
+  label,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  onClick?: () => void;
+}) {
   const pathname = usePathname();
   const active = pathname === href || pathname?.startsWith(href + "/");
 
   return (
     <Link
       href={href}
+      onClick={onClick}
       style={{
         textDecoration: "none",
         color: "var(--text)",
@@ -23,6 +32,8 @@ function NavLink({ href, label }: { href: string; label: string }) {
         fontWeight: 900,
         border: active ? "1px solid rgba(255,255,255,0.18)" : "1px solid transparent",
         background: active ? "rgba(255,255,255,0.06)" : "transparent",
+        display: "inline-flex",
+        alignItems: "center",
       }}
     >
       {label}
@@ -30,9 +41,45 @@ function NavLink({ href, label }: { href: string; label: string }) {
   );
 }
 
+function HamburgerIcon({ open }: { open: boolean }) {
+  const line: React.CSSProperties = {
+    height: 2,
+    width: 18,
+    background: "rgba(255,255,255,0.9)",
+    borderRadius: 999,
+    transition: "transform 180ms ease, opacity 180ms ease",
+  };
+
+  return (
+    <span style={{ display: "grid", gap: 4 }}>
+      <span
+        style={{
+          ...line,
+          transform: open ? "translateY(6px) rotate(45deg)" : "none",
+        }}
+      />
+      <span style={{ ...line, opacity: open ? 0 : 1 }} />
+      <span
+        style={{
+          ...line,
+          transform: open ? "translateY(-6px) rotate(-45deg)" : "none",
+        }}
+      />
+    </span>
+  );
+}
+
 export default function SiteHeader() {
   const [role, setRole] = useState<Role>("GUEST");
   const pathname = usePathname();
+
+  
+  const [open, setOpen] = useState(false);
+
+ 
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     let alive = true;
@@ -64,6 +111,7 @@ export default function SiteHeader() {
   }, []);
 
   const isAdmin = role === "ADMIN";
+  const onAdminRoute = pathname?.startsWith("/admin");
 
   return (
     <header
@@ -97,22 +145,46 @@ export default function SiteHeader() {
 
         <div style={{ flex: 1 }} />
 
-        <nav style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          {!pathname?.startsWith("/admin") ? (
-        <>
-          <NavLink href="/" label="Home" />
-          <NavLink href="/apply" label="Apply" />
-          <NavLink href="/upload" label="Upload" />
-          <NavLink href="/status" label="Status" />
-        </>
-      ) : (
-        <>
-          <NavLink href="/admin/dashboard" label="Dashboard" />
-        </>
-      )}
-    </nav>
+        
+        <nav className="navDesktop" style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {!onAdminRoute ? (
+            <>
+              <NavLink href="/" label="Home" />
+              <NavLink href="/apply" label="Apply" />
+              <NavLink href="/upload" label="Upload" />
+              <NavLink href="/status" label="Status" />
+            </>
+          ) : (
+            <>
+              <NavLink href="/admin/dashboard" label="Dashboard" />
+            </>
+          )}
+        </nav>
 
+        {/* Right side: hamburger (mobile) + auth */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+         
+          <button
+            className="navMobileBtn"
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            style={{
+              display: "none",
+              height: 40,
+              width: 44,
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.06)",
+              cursor: "pointer",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <HamburgerIcon open={open} />
+          </button>
+
           <SignedOut>
             <SignInButton>
               <button className="btn btnPrimary" type="button">
@@ -126,6 +198,53 @@ export default function SiteHeader() {
           </SignedIn>
         </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {open ? (
+        <div
+          className="navMobilePanel"
+          style={{
+            borderTop: "1px solid rgba(255,255,255,0.10)",
+            background: "rgba(11,18,32,0.92)",
+            backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)",
+          }}
+        >
+          <div className="container" style={{ padding: "10px 0" }}>
+            <div style={{ display: "grid", gap: 8 }}>
+              {!onAdminRoute ? (
+                <>
+                  <NavLink href="/" label="Home" onClick={() => setOpen(false)} />
+                  <NavLink href="/apply" label="Apply" onClick={() => setOpen(false)} />
+                  <NavLink href="/upload" label="Upload" onClick={() => setOpen(false)} />
+                  <NavLink href="/status" label="Status" onClick={() => setOpen(false)} />
+                </>
+              ) : (
+                <>
+                  <NavLink href="/admin/dashboard" label="Dashboard" onClick={() => setOpen(false)} />
+                </>
+              )}
+
+             
+              {!onAdminRoute && isAdmin ? (
+                <NavLink href="/admin/dashboard" label="Admin" onClick={() => setOpen(false)} />
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+     
+      <style jsx global>{`
+        @media (max-width: 760px) {
+          .navDesktop {
+            display: none !important;
+          }
+          .navMobileBtn {
+            display: inline-flex !important;
+          }
+        }
+      `}</style>
     </header>
   );
 }
